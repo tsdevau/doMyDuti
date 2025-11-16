@@ -149,7 +149,8 @@ extract_bundle_id_from_config() {
         line=$(echo "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
         
         # Match: "bundleId": "value" or 'bundleId': 'value'
-        if [[ "$line" =~ ^[\"']bundleId[\"'][[:space:]]*:[[:space:]]*[\"']([^\"']+)[\"'] ]]; then
+        local bundle_id_regex="^[\"']bundleId[\"'][[:space:]]*:[[:space:]]*[\"']([^\"']+)[\"']"
+        if [[ "$line" =~ $bundle_id_regex ]]; then
             echo "${BASH_REMATCH[1]}"
             return 0
         fi
@@ -276,7 +277,8 @@ parse_jsonc_config() {
         if [[ "$line" =~ ^[\"']extensions[\"'][[:space:]]*:[[:space:]]*\[ ]]; then
             in_extensions=true
             # Check if there's an entry on the same line
-            if [[ "$line" =~ \[[\"']([^\"']+)[\"'][[:space:]]*,[[:space:]]*[\"']([^\"']+)[\"']\] ]]; then
+            local extension_entry_regex="\[[\"']([^\"']+)[\"'][[:space:]]*,[[:space:]]*[\"']([^\"']+)[\"']\]"
+            if [[ "$line" =~ $extension_entry_regex ]]; then
                 echo "${BASH_REMATCH[1]} ${BASH_REMATCH[2]}"
             fi
             continue
@@ -305,7 +307,8 @@ parse_jsonc_config() {
         if [[ "$in_extensions" == true ]]; then
             # Extract extension and role from array entries like [".ext", "role"] or [".ext", "role"],
             # Match: ["...", "..."] or ['...', '...'] with optional trailing comma
-            if [[ "$line" =~ ^\[[\"']([^\"']+)[\"'][[:space:]]*,[[:space:]]*[\"']([^\"']+)[\"']\]\,? ]]; then
+            local array_entry_regex="^\[[\"']([^\"']+)[\"'][[:space:]]*,[[:space:]]*[\"']([^\"']+)[\"']\]\,?"
+            if [[ "$line" =~ $array_entry_regex ]]; then
                 local extension="${BASH_REMATCH[1]}"
                 local role="${BASH_REMATCH[2]}"
                 
