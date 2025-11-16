@@ -1,12 +1,39 @@
 {
   "bundleId": "com.todesktop.230313mzl4w4u92",
   "extensions": [
-    // Additional Web Technologies
+    // ============================================
+    // Web Development - Core
+    // ============================================
+    [".html", "all"],
+    [".htm", "all"],
+    [".xhtml", "all"],
+    [".css", "all"],
+    [".scss", "all"],
+    [".sass", "all"],
+    [".less", "all"],
+    [".js", "all"],
+    [".jsx", "all"],
+    [".mjs", "all"],
+    [".cjs", "all"],
+    [".ts", "all"],
+    [".tsx", "all"],
+    [".vue", "all"],
+    [".svelte", "all"],
+    [".astro", "all"],
+
+    // Web Templates & Preprocessors
     [".ejs", "all"],
     [".handlebars", "all"],
     [".hbs", "all"],
     [".pug", "all"],
     [".jade", "all"],
+    [".mustache", "all"],
+    [".haml", "all"],
+    [".erb", "all"],
+    [".twig", "all"],
+    [".liquid", "all"],
+
+    // CSS Preprocessors & Post-processors
     [".styl", "all"],
     [".stylus", "all"],
     [".postcss", "all"],
@@ -15,87 +42,446 @@
     [".wasm", "all"],
     [".wat", "all"],
 
-    // Package Manager Files
-    [".npmrc", "all"],
-    [".yarnrc", "all"],
-    [".bunfig", "all"],
+    // ============================================
+    // Programming Languages - Compiled
+    // ============================================
+    // C & C++
+    [".c", "all"],
+    [".h", "all"],
+    [".cpp", "all"],
+    [".hpp", "all"],
+    [".cc", "all"],
+    [".cxx", "all"],
+    [".c++", "all"],
+    [".hxx", "all"],
+    [".hh", "all"],
 
-    // CI/CD Configuration
-    [".gitlab-ci.yml", "all"],
-    [".travis.yml", "all"],
-    [".circleci", "all"],
+    // Objective-C (non-Xcode files)
+    [".m", "all"],
+    [".mm", "all"],
 
-    // Svelte & Astro Related
-    [".svx", "all"],
+    // Swift (non-Xcode project files)
+    [".swift", "all"],
 
-    // Additional Config Formats
-    [".cfg", "all"],
-    [".properties", "all"],
-    [".prop", "all"],
+    // Java & JVM Languages
+    [".java", "all"],
+    [".kt", "all"],
+    [".kts", "all"],
+    [".scala", "all"],
+    [".sc", "all"],
+    [".groovy", "all"],
+    [".gradle", "all"],
+    [".clj", "all"],
+    [".cljs", "all"],
+    [".cljc", "all"],
+    [".edn", "all"],
 
-    // Nix
-    [".nix", "all"],
+    // .NET Languages
+    [".cs", "all"],
+    [".csx", "all"],
+    [".vb", "all"],
+    [".vbx", "all"],
+    [".fs", "all"],
+    [".fsx", "all"],
+    [".fsi", "all"],
+    [".xaml", "all"],
+    [".resx", "all"],
+    [".csproj", "all"],
+    [".vbproj", "all"],
+    [".fsproj", "all"],
+    [".sln", "all"],
 
-    // V
-    [".v", "all"],
+    // Go
+    [".go", "all"],
 
-    // Crystal
-    [".cr", "all"],
+    // Rust
+    [".rs", "all"],
 
-    // Nim
-    [".nim", "all"],
+    // Python
+    [".py", "all"],
+    [".pyw", "all"],
+    [".pyi", "all"],
+    [".pyx", "all"],
+    [".pxd", "all"],
+    [".pxi", "all"],
 
-    // Reason/ReScript
-    [".re", "all"],
-    [".res", "all"],
+    // Ruby
+    [".rb", "all"],
+    [".rbw", "all"],
+    [".rake", "all"],
+    [".gemspec", "all"],
+
+    // PHP
+    [".php", "all"],
+    [".phtml", "all"],
+    [".php3", "all"],
+    [".php4", "all"],
+    [".php5", "all"],
+    [".phps", "all"],
+
+    // JavaScript/TypeScript Variants
+    [".coffee", "all"],
+    [".coffeescript", "all"],
+    [".iced", "all"],
+    [".jsx", "all"],
+    [".tsx", "all"],
+
+    // ============================================
+    // Functional & Specialized Languages
+    // ============================================
+    // Haskell
+    [".hs", "all"],
+    [".lhs", "all"],
 
     // OCaml
     [".ml", "all"],
     [".mli", "all"],
+    [".mll", "all"],
+    [".mly", "all"],
 
-    // F             #
+    // F#
+    [".fs", "all"],
+    [".fsx", "all"],
     [".fsi", "all"],
 
-    // Prisma
-    [".prisma", "all"],
+    // Elixir & Erlang
+    [".ex", "all"],
+    [".exs", "all"],
+    [".erl", "all"],
+    [".hrl", "all"],
 
-    // Deno
-    [".deno", "all"],
+    // Reason/ReScript
+    [".re", "all"],
+    [".rei", "all"],
+    [".res", "all"],
+    [".resi", "all"],
 
-    // Misc Development Files
-    [".diff", "all"],
-    [".patch", "all"],
-    [".rej", "all"],
+    // Lisp & Scheme
+    [".lisp", "all"],
+    [".lsp", "all"],
+    [".cl", "all"],
+    [".scm", "all"],
+    [".ss", "all"],
+    [".rkt", "all"],
 
-    // Cloudflare Workers
-    [".wrangler", "all"],
+    // Prolog
+    [".pl", "all"],
+    [".pro", "all"],
+    [".prolog", "all"],
 
-    // Vercel
-    [".vercel", "all"],
+    // ============================================
+    // Modern & Emerging Languages
+    // ============================================
+    [".dart", "all"],
+    [".jl", "all"],
+    [".zig", "all"],
+    [".v", "all"],
+    [".cr", "all"],
+    [".nim", "all"],
+    [".elm", "all"],
+    [".hx", "all"],
+    [".ex", "all"],
+    [".exs", "all"],
+    [".nix", "all"],
 
-    // Additional Data Formats
+    // ============================================
+    // Scripting Languages
+    // ============================================
+    // Shell Scripts
+    [".sh", "all"],
+    [".bash", "all"],
+    [".zsh", "all"],
+    [".fish", "all"],
+    [".ksh", "all"],
+    [".csh", "all"],
+    [".tcsh", "all"],
+
+    // PowerShell
+    [".ps1", "all"],
+    [".psm1", "all"],
+    [".psd1", "all"],
+    [".ps1xml", "all"],
+
+    // Other Scripts
+    [".lua", "all"],
+    [".tcl", "all"],
+    [".tk", "all"],
+    [".r", "all"],
+    [".R", "all"],
+    [".applescript", "all"],
+    [".scpt", "all"],
+    [".vbs", "all"],
+    [".wsf", "all"],
+
+    // Perl
+    [".pl", "all"],
+    [".pm", "all"],
+    [".pod", "all"],
+
+    // ============================================
+    // Configuration & Data Formats
+    // ============================================
+    // JSON Variants
+    [".json", "all"],
+    [".jsonc", "all"],
+    [".json5", "all"],
+    [".jsonl", "all"],
     [".jsonld", "all"],
     [".geojson", "all"],
     [".topojson", "all"],
 
-    // Svelte Kit
+    // YAML
+    [".yaml", "all"],
+    [".yml", "all"],
+
+    // XML & Related
+    [".xml", "all"],
+    [".xsd", "all"],
+    [".xslt", "all"],
+    [".xsl", "all"],
+    [".dtd", "all"],
+    [".rss", "all"],
+    [".atom", "all"],
+
+    // TOML
+    [".toml", "all"],
+
+    // INI & Config
+    [".ini", "all"],
+    [".cfg", "all"],
+    [".conf", "all"],
+    [".config", "all"],
+    [".properties", "all"],
+    [".prop", "all"],
+
+    // Environment Files
+    [".env", "all"],
+    [".env.local", "all"],
+    [".env.development", "all"],
+    [".env.production", "all"],
+    [".env.test", "all"],
+
+    // ============================================
+    // Markup & Documentation
+    // ============================================
+    [".md", "all"],
+    [".markdown", "all"],
+    [".mdown", "all"],
+    [".mkd", "all"],
+    [".mkdn", "all"],
+    [".rst", "all"],
+    [".tex", "all"],
+    [".latex", "all"],
+    [".ltx", "all"],
+    [".org", "all"],
+    [".adoc", "all"],
+    [".asciidoc", "all"],
+
+    // ============================================
+    // Database & SQL
+    // ============================================
+    [".sql", "all"],
+    [".ddl", "all"],
+    [".dml", "all"],
+    [".pgsql", "all"],
+    [".mysql", "all"],
+    [".sqlite", "all"],
+
+    // ============================================
+    // Data Formats
+    // ============================================
+    [".csv", "all"],
+    [".tsv", "all"],
+    [".psv", "all"],
+
+    // ============================================
+    // Build & Infrastructure
+    // ============================================
+    // Docker
+    [".dockerfile", "all"],
+    [".Dockerfile", "all"],
+    ["public.Dockerfile", "all"],
+
+    // Terraform
+    [".tf", "all"],
+    [".tfvars", "all"],
+    [".hcl", "all"],
+
+    // Make & Build
+    [".makefile", "all"],
+    [".Makefile", "all"],
+    ["public.Makefile", "all"],
+    [".mk", "all"],
+    [".cmake", "all"],
+    [".cmake.in", "all"],
+
+    // Package Managers
+    [".npmrc", "all"],
+    [".yarnrc", "all"],
+    [".yarnrc.yml", "all"],
+    [".bunfig", "all"],
+    [".pnpmrc", "all"],
+    [".bowerrc", "all"],
+    [".composer.json", "all"],
+    [".composer.lock", "all"],
+    [".package.json", "all"],
+    [".package-lock.json", "all"],
+    [".yarn.lock", "all"],
+    [".pnpm-lock.yaml", "all"],
+    [".bun.lockb", "all"],
+    [".Gemfile", "all"],
+    ["public.Gemfile", "all"],
+    [".Gemfile.lock", "all"],
+    [".go.mod", "all"],
+    [".go.sum", "all"],
+    [".Cargo.toml", "all"],
+    [".Cargo.lock", "all"],
+    [".pom.xml", "all"],
+    [".build.gradle", "all"],
+    [".build.gradle.kts", "all"],
+    [".settings.gradle", "all"],
+    [".requirements.txt", "all"],
+    [".Pipfile", "all"],
+    [".Pipfile.lock", "all"],
+    [".poetry.lock", "all"],
+    [".pyproject.toml", "all"],
+    [".setup.py", "all"],
+    [".setup.cfg", "all"],
+    [".MANIFEST.in", "all"],
+    [".Rakefile", "all"],
+    ["public.Rakefile", "all"],
+    [".Procfile", "all"],
+    ["public.Procfile", "all"],
+
+    // CI/CD
+    [".gitlab-ci.yml", "all"],
+    [".travis.yml", "all"],
+    [".circleci", "all"],
+    [".github", "all"],
+    [".drone.yml", "all"],
+    [".jenkinsfile", "all"],
+    [".Jenkinsfile", "all"],
+    [".azure-pipelines.yml", "all"],
+    [".appveyor.yml", "all"],
+
+    // ============================================
+    // Framework & Tool Configs
+    // ============================================
+    // Svelte & Astro
+    [".svx", "all"],
     [".svelte.config", "all"],
+    [".svelte.config.js", "all"],
+    [".svelte.config.ts", "all"],
 
     // Vite
     [".vite.config", "all"],
+    [".vite.config.js", "all"],
+    [".vite.config.ts", "all"],
 
-    // ESLint/Prettier variants
+    // Next.js
+    [".next.config.js", "all"],
+    [".next.config.ts", "all"],
+    [".next.config.mjs", "all"],
+
+    // Nuxt
+    [".nuxt.config.js", "all"],
+    [".nuxt.config.ts", "all"],
+
+    // Remix
+    [".remix.config.js", "all"],
+
+    // ESLint/Prettier
+    [".eslintrc", "all"],
+    [".eslintrc.js", "all"],
+    [".eslintrc.json", "all"],
+    [".eslintrc.yml", "all"],
+    [".eslintrc.yaml", "all"],
     [".eslintignore", "all"],
+    [".prettierrc", "all"],
+    [".prettierrc.js", "all"],
+    [".prettierrc.json", "all"],
+    [".prettierrc.yml", "all"],
+    [".prettierrc.yaml", "all"],
     [".prettierignore", "all"],
+    [".prettier.config.js", "all"],
+    [".prettier.config.ts", "all"],
 
     // Husky
     [".huskyrc", "all"],
+    [".huskyrc.js", "all"],
+    [".huskyrc.json", "all"],
 
-    // Common dot files without extension
-    ["public.Dockerfile", "all"],
-    ["public.Makefile", "all"],
-    ["public.Rakefile", "all"],
-    ["public.Gemfile", "all"],
-    ["public.Procfile", "all"]
+    // TypeScript
+    [".tsconfig.json", "all"],
+    [".tsconfig.base.json", "all"],
+    [".jsconfig.json", "all"],
+
+    // Babel
+    [".babelrc", "all"],
+    [".babelrc.js", "all"],
+    [".babelrc.json", "all"],
+    [".babel.config.js", "all"],
+    [".babel.config.json", "all"],
+
+    // Webpack
+    [".webpack.config.js", "all"],
+    [".webpack.config.ts", "all"],
+
+    // Rollup
+    [".rollup.config.js", "all"],
+    [".rollup.config.ts", "all"],
+
+    // Prisma
+    [".prisma", "all"],
+    [".schema.prisma", "all"],
+
+    // Deno
+    [".deno", "all"],
+    [".deno.json", "all"],
+    [".deno.jsonc", "all"],
+
+    // Cloudflare Workers
+    [".wrangler", "all"],
+    [".wrangler.toml", "all"],
+
+    // Vercel
+    [".vercel", "all"],
+    [".vercel.json", "all"],
+
+    // Netlify
+    [".netlify.toml", "all"],
+
+    // ============================================
+    // Version Control & Diffs
+    // ============================================
+    [".diff", "all"],
+    [".patch", "all"],
+    [".rej", "all"],
+
+    // ============================================
+    // Assembly & Low-Level
+    // ============================================
+    [".asm", "all"],
+    [".s", "all"],
+    [".S", "all"],
+
+    // ============================================
+    // Hardware Description Languages
+    // ============================================
+    [".vhd", "all"],
+    [".vhdl", "all"],
+    [".sv", "all"],
+    [".svh", "all"],
+
+    // ============================================
+    // Other Specialized Formats
+    // ============================================
+    [".graphql", "all"],
+    [".gql", "all"],
+    [".proto", "all"],
+    [".thrift", "all"],
+    [".avsc", "all"],
+    [".avdl", "all"],
+    [".avpr", "all"]
   ]
 }
