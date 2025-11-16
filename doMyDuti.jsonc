@@ -1,0 +1,101 @@
+{
+  "bundleId": "com.todesktop.230313mzl4w4u92",
+  "extensions": [
+    // Additional Web Technologies
+    [".ejs", "all"],
+    [".handlebars", "all"],
+    [".hbs", "all"],
+    [".pug", "all"],
+    [".jade", "all"],
+    [".styl", "all"],
+    [".stylus", "all"],
+    [".postcss", "all"],
+
+    // WebAssembly
+    [".wasm", "all"],
+    [".wat", "all"],
+
+    // Package Manager Files
+    [".npmrc", "all"],
+    [".yarnrc", "all"],
+    [".bunfig", "all"],
+
+    // CI/CD Configuration
+    [".gitlab-ci.yml", "all"],
+    [".travis.yml", "all"],
+    [".circleci", "all"],
+
+    // Svelte & Astro Related
+    [".svx", "all"],
+
+    // Additional Config Formats
+    [".cfg", "all"],
+    [".properties", "all"],
+    [".prop", "all"],
+
+    // Nix
+    [".nix", "all"],
+
+    // V
+    [".v", "all"],
+
+    // Crystal
+    [".cr", "all"],
+
+    // Nim
+    [".nim", "all"],
+
+    // Reason/ReScript
+    [".re", "all"],
+    [".res", "all"],
+
+    // OCaml
+    [".ml", "all"],
+    [".mli", "all"],
+
+    // F             #
+    [".fsi", "all"],
+
+    // Prisma
+    [".prisma", "all"],
+
+    // Deno
+    [".deno", "all"],
+
+    // Misc Development Files
+    [".diff", "all"],
+    [".patch", "all"],
+    [".rej", "all"],
+
+    // Cloudflare Workers
+    [".wrangler", "all"],
+
+    // Vercel
+    [".vercel", "all"],
+
+    // Additional Data Formats
+    [".jsonld", "all"],
+    [".geojson", "all"],
+    [".topojson", "all"],
+
+    // Svelte Kit
+    [".svelte.config", "all"],
+
+    // Vite
+    [".vite.config", "all"],
+
+    // ESLint/Prettier variants
+    [".eslintignore", "all"],
+    [".prettierignore", "all"],
+
+    // Husky
+    [".huskyrc", "all"],
+
+    // Common dot files without extension
+    ["public.Dockerfile", "all"],
+    ["public.Makefile", "all"],
+    ["public.Rakefile", "all"],
+    ["public.Gemfile", "all"],
+    ["public.Procfile", "all"]
+  ]
+}
