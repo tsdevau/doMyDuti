@@ -18,6 +18,21 @@ chmod +x doMyDuti.sh
 ./doMyDuti.sh -b com.microsoft.VSCode
 ```
 
+## ⚡ One-Line Installation
+
+The fastest way to get started:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/tsdevau/doMyDuti/main/install.sh | bash
+```
+
+This will:
+- Install `duti` if not present (requires Homebrew)
+- Download the script to `~/.local/bin` (or another suitable location)
+- Download the config file to `$XDG_CONFIG_HOME/doMyDuti/doMyDuti.jsonc` or `~/.doMyDuti.jsonc`
+- Make the script executable
+- Optionally run the configuration immediately
+
 ## 📋 Quick Reference
 
 ### Common Commands
@@ -102,11 +117,11 @@ osascript -e 'id of application "App Name"'
 
 ## 📋 Command-Line Options
 
-| Option               | Description                   | Default                                      |
-| -------------------- | ----------------------------- | -------------------------------------------- |
-| `-c, --config FILE`  | Path to config file           | See [Config Resolution](#config-file-resolution) |
-| `-b, --bundleId ID`  | Application bundle identifier | See [Bundle ID Resolution](#bundle-id-resolution) |
-| `-h, --help`         | Show help message             | -                                            |
+| Option              | Description                   | Default                                           |
+| ------------------- | ----------------------------- | ------------------------------------------------- |
+| `-c, --config FILE` | Path to config file           | See [Config Resolution](#config-file-resolution)  |
+| `-b, --bundleId ID` | Application bundle identifier | See [Bundle ID Resolution](#bundle-id-resolution) |
+| `-h, --help`        | Show help message             | -                                                 |
 
 ## 🔍 Configuration Resolution
 
