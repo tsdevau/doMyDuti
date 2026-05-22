@@ -19,25 +19,25 @@ BUNDLE_ID=""
 # Function to resolve config file path
 resolve_config_file() {
     local user_specified="$1"
-    
+
     # 1. Use config file passed with --config or -c flag
     if [[ -n "$user_specified" ]]; then
         echo "$user_specified"
         return
     fi
-    
+
     # 2. Look for config file in $XDG_CONFIG_HOME/doMyDuti/doMyDuti.jsonc
     if [[ -n "$XDG_CONFIG_HOME" ]] && [[ -f "${XDG_CONFIG_HOME}/doMyDuti/doMyDuti.jsonc" ]]; then
         echo "${XDG_CONFIG_HOME}/doMyDuti/doMyDuti.jsonc"
         return
     fi
-    
+
     # 3. Look for config file in ~/.doMyDuti.jsonc
     if [[ -f "${HOME}/.doMyDuti.jsonc" ]]; then
         echo "${HOME}/.doMyDuti.jsonc"
         return
     fi
-    
+
     # 4. Use script default
     echo "${DEFAULT_CONFIG_FILE}"
 }
@@ -89,7 +89,7 @@ CONFIG FILE FORMAT:
         [".py", "all"]
       ]
     }
-    
+
     Lines starting with // are comments and will be ignored.
     The bundleId field is optional and will be used if not specified via CLI.
 
@@ -126,11 +126,11 @@ CONFIG_FILE=$(resolve_config_file "$USER_CONFIG_FILE")
 # Function to extract bundle_id from JSONC config file
 extract_bundle_id_from_config() {
     local config_file="$1"
-    
+
     if [[ ! -f "$config_file" ]]; then
         return 1
     fi
-    
+
     # Try using jq if available (preferred method)
     if command -v jq &> /dev/null; then
         # Strip comments and extract bundleId
@@ -140,14 +140,14 @@ extract_bundle_id_from_config() {
             return 0
         fi
     fi
-    
+
     # Fallback: Simple parser for JSONC format
     while IFS= read -r line; do
         # Strip comments
         line=$(echo "$line" | sed 's|//.*||' | sed 's|#.*||')
         # Trim whitespace
         line=$(echo "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-        
+
         # Match: "bundleId": "value" or 'bundleId': 'value'
         local bundle_id_regex="^[\"']bundleId[\"'][[:space:]]*:[[:space:]]*[\"']([^\"']+)[\"']"
         if [[ "$line" =~ $bundle_id_regex ]]; then
@@ -155,7 +155,7 @@ extract_bundle_id_from_config() {
             return 0
         fi
     done < "$config_file"
-    
+
     return 1
 }
 
@@ -166,7 +166,7 @@ resolve_bundle_id() {
         echo "$USER_BUNDLE_ID"
         return
     fi
-    
+
     # 2. Config file in XDG_CONFIG_HOME
     if [[ -n "$XDG_CONFIG_HOME" ]] && [[ -f "${XDG_CONFIG_HOME}/doMyDuti/doMyDuti.jsonc" ]]; then
         local bundle_id=$(extract_bundle_id_from_config "${XDG_CONFIG_HOME}/doMyDuti/doMyDuti.jsonc")
@@ -175,7 +175,7 @@ resolve_bundle_id() {
             return
         fi
     fi
-    
+
     # 3. Config file in user root
     if [[ -f "${HOME}/.doMyDuti.jsonc" ]]; then
         local bundle_id=$(extract_bundle_id_from_config "${HOME}/.doMyDuti.jsonc")
@@ -184,7 +184,7 @@ resolve_bundle_id() {
             return
         fi
     fi
-    
+
     # 4. Script default config file (if it exists and hasn't been checked yet)
     if [[ -f "$DEFAULT_CONFIG_FILE" ]] && \
        [[ "$DEFAULT_CONFIG_FILE" != "${XDG_CONFIG_HOME}/doMyDuti/doMyDuti.jsonc" ]] && \
@@ -195,7 +195,7 @@ resolve_bundle_id() {
             return
         fi
     fi
-    
+
     # 5. Script default bundle ID (lowest priority)
     echo "${DEFAULT_BUNDLE_ID}"
 }
@@ -247,7 +247,7 @@ fi
 # Function to parse JSONC config file
 parse_jsonc_config() {
     local config_file="$1"
-    
+
     # Try using jq if available (preferred method)
     if command -v jq &> /dev/null; then
         # Strip comments and parse JSON - handle both array and object formats
@@ -260,7 +260,7 @@ parse_jsonc_config() {
         # Fallback to root array format
         sed 's|//.*||' "$config_file" | jq -r '.[] | "\(.[0]) \(.[1])"' 2>/dev/null && return 0
     fi
-    
+
     # Fallback: Simple parser for JSONC format
     # Handles format: {"bundleId": "...", "extensions": [[".ext", "role"], ...]}
     local in_extensions=false
@@ -269,10 +269,10 @@ parse_jsonc_config() {
         line=$(echo "$line" | sed 's|//.*||' | sed 's|#.*||')
         # Trim whitespace
         line=$(echo "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-        
+
         # Skip empty lines
         [[ -z "$line" ]] && continue
-        
+
         # Check if we're entering the extensions array
         if [[ "$line" =~ ^[\"']extensions[\"'][[:space:]]*:[[:space:]]*\[ ]]; then
             in_extensions=true
@@ -286,12 +286,12 @@ parse_jsonc_config() {
             in_extensions=true
             continue
         fi
-        
+
         # Skip bundleId line
         if [[ "$line" =~ ^[\"']bundleId[\"'] ]]; then
             continue
         fi
-        
+
         # Skip outer brackets and braces (but track when we exit extensions array)
         if [[ "$line" == "[" ]] && [[ "$in_extensions" == false ]]; then
             continue
@@ -302,7 +302,7 @@ parse_jsonc_config() {
         fi
         [[ "$line" == "{" ]] && continue
         [[ "$line" == "}" ]] && { in_extensions=false; continue; }
-        
+
         # Only process array entries when inside extensions array
         if [[ "$in_extensions" == true ]]; then
             # Extract extension and role from array entries like [".ext", "role"] or [".ext", "role"],
@@ -311,7 +311,7 @@ parse_jsonc_config() {
             if [[ "$line" =~ $array_entry_regex ]]; then
                 local extension="${BASH_REMATCH[1]}"
                 local role="${BASH_REMATCH[2]}"
-                
+
                 if [[ -n "$extension" ]] && [[ -n "$role" ]]; then
                     echo "$extension $role"
                 fi
@@ -336,6 +336,70 @@ else
     echo ""
 fi
 
+# Function to ensure all configured extensions have a registered UTI in Launch Services.
+# Generates a minimal app bundle with UTImportedTypeDeclarations and registers it,
+# so that LSSetDefaultRoleHandlerForContentType (used by duti) doesn't return kLSUnknownTypeErr.
+ensure_utis_registered() {
+    local config_file="$1"
+    local helper_app="/tmp/DoMyDutiHelper.app"
+    local contents_dir="${helper_app}/Contents"
+
+    mkdir -p "$contents_dir"
+
+    # Build one UTImportedTypeDeclaration dict per extension
+    local uti_declarations=""
+    while IFS= read -r line; do
+        [[ -z "$line" ]] && continue
+        read -r extension role <<< "$line"
+        local ext_clean="${extension#.}"          # strip leading dot
+        local uti_id="com.domduti.type.${ext_clean}"
+
+        uti_declarations+="        <dict>
+            <key>UTTypeIdentifier</key>
+            <string>${uti_id}</string>
+            <key>UTTypeDescription</key>
+            <string>${ext_clean} file</string>
+            <key>UTTypeConformsTo</key>
+            <array>
+                <string>public.plain-text</string>
+            </array>
+            <key>UTTypeTagSpecification</key>
+            <dict>
+                <key>public.filename-extension</key>
+                <array>
+                    <string>${ext_clean}</string>
+                </array>
+            </dict>
+        </dict>
+"
+    done < <(parse_jsonc_config "$config_file")
+
+    cat > "${contents_dir}/Info.plist" << PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleIdentifier</key>
+    <string>com.domduti.helper</string>
+    <key>CFBundleName</key>
+    <string>DoMyDutiHelper</string>
+    <key>CFBundleVersion</key>
+    <string>1.0</string>
+    <key>UTImportedTypeDeclarations</key>
+    <array>
+${uti_declarations}    </array>
+</dict>
+</plist>
+PLIST
+
+    /System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support/lsregister -f "$helper_app" 2>/dev/null
+    echo -e "${CYAN}ℹ Registered UTIs for all configured extensions${NC}"
+    echo ""
+}
+
+# Ensure UTIs exist before duti tries to map them
+ensure_utis_registered "$CONFIG_FILE"
+
 # Count total entries
 TOTAL_ENTRIES=$(parse_jsonc_config "$CONFIG_FILE" | wc -l | tr -d ' ')
 echo -e "${BLUE}Found ${TOTAL_ENTRIES} file extension mappings to configure${NC}"
@@ -349,17 +413,17 @@ SKIP_COUNT=0
 while IFS= read -r line; do
     # Skip empty lines
     [[ -z "$line" ]] && continue
-    
+
     # Parse the line: extension role
     read -r extension role <<< "$line"
-    
+
     # Validate the line has both components
     if [[ -z "$extension" ]] || [[ -z "$role" ]]; then
         echo -e "${YELLOW}⚠ Skipping malformed entry: $line${NC}"
         ((SKIP_COUNT++))
         continue
     fi
-    
+
     # Set the default handler using duti
     if duti -s "$BUNDLE_ID" "$extension" "$role" 2>/dev/null; then
         echo -e "${GREEN}✓${NC} Set ${YELLOW}${extension}${NC} → ${APP_NAME}"
