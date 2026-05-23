@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script to set default application handler for code file extensions
-# Uses duti to modify Launch Services database
+# Writes Launch Services preferences directly to avoid macOS 26.4+ confirmation dialogs
 # Created: $(date +"%d/%m/%Y %H:%M")
 
 set -e  # Exit on error
@@ -46,11 +46,12 @@ usage() {
     cat << EOF
 Usage: $(basename "$0") [OPTIONS]
 
-Set default application handler for code file extensions using duti.
+Set default application handler for code file extensions on macOS.
 
 OPTIONS:
     -c, --config FILE       Config file path
     -b, --bundleId ID       Application bundle ID
+    -i, --immediate        Apply via duti with auto-accepted prompts (macOS 26.4+)
     -h, --help             Show this help message
 
 BUNDLE ID RESOLUTION ORDER:
@@ -99,6 +100,7 @@ EOF
 
 # Parse arguments
 USER_CONFIG_FILE=""
+USE_IMMEDIATE=false
 while [[ $# -gt 0 ]]; do
     case $1 in
         -c|--config)
@@ -108,6 +110,10 @@ while [[ $# -gt 0 ]]; do
         -b|--bundleId)
             USER_BUNDLE_ID="$2"
             shift 2
+            ;;
+        -i|--immediate)
+            USE_IMMEDIATE=true
+            shift
             ;;
         -h|--help)
             usage
@@ -218,13 +224,6 @@ echo ""
 echo -e "${CYAN}Bundle ID:${NC}    ${BUNDLE_ID}"
 echo -e "${CYAN}Config File:${NC} ${CONFIG_FILE}"
 echo ""
-
-# Check if duti is installed
-if ! command -v duti &> /dev/null; then
-    echo -e "${RED}✗ Error: duti is not installed${NC}"
-    echo -e "${YELLOW}  Install it with: brew install duti${NC}"
-    exit 1
-fi
 
 # Check if config file exists
 if [[ ! -f "$CONFIG_FILE" ]]; then
@@ -397,12 +396,195 @@ PLIST
     echo ""
 }
 
-# Ensure UTIs exist before duti tries to map them
+# Ensure UTIs exist before mapping handlers
 ensure_utis_registered "$CONFIG_FILE"
+
+# Apply handlers by updating Launch Services preferences in one batch.
+# macOS 26.4+ shows a confirmation dialog for every LSSetDefaultRoleHandler call
+# (what duti uses). Writing LSHandlers via UserDefaults avoids those prompts entirely.
+apply_handlers_via_plist() {
+    local bundle_id="$1"
+    local config_file="$2"
+    local entries_file
+    entries_file=$(mktemp)
+
+    parse_jsonc_config "$config_file" > "$entries_file"
+
+    swift - "$bundle_id" "$entries_file" << 'SWIFT'
+import Foundation
+
+let bundleId = CommandLine.arguments[1]
+let entriesPath = CommandLine.arguments[2]
+let entriesURL = URL(fileURLWithPath: entriesPath)
+let suiteName = "com.apple.LaunchServices/com.apple.launchservices.secure"
+
+let roleKeys: [String: String] = [
+    "all": "LSHandlerRoleAll",
+    "viewer": "LSHandlerRoleViewer",
+    "editor": "LSHandlerRoleEditor",
+    "shell": "LSHandlerRoleShell",
+]
+
+guard let defaults = UserDefaults(suiteName: suiteName) else {
+    fputs("ERROR\tCould not open Launch Services preferences\n", stderr)
+    exit(1)
+}
+
+var handlers = defaults.array(forKey: "LSHandlers") as? [[String: Any]] ?? []
+let modificationDate = Int(Date().timeIntervalSinceReferenceDate)
+
+func handlerMatches(_ entry: [String: Any], contentType: String, roleKey: String) -> Bool {
+    entry["LSHandlerContentType"] as? String == contentType && entry[roleKey] != nil
+}
+
+guard let entriesData = try? String(contentsOf: entriesURL, encoding: .utf8) else {
+    fputs("ERROR\tCould not read extension entries\n", stderr)
+    exit(1)
+}
+
+var failCount = 0
+
+for rawLine in entriesData.split(separator: "\n") {
+    let line = rawLine.trimmingCharacters(in: .whitespacesAndNewlines)
+    if line.isEmpty { continue }
+
+    let parts = line.split(separator: " ", maxSplits: 1).map(String.init)
+    guard parts.count == 2 else {
+        print("SKIP\t\(line)")
+        continue
+    }
+
+    let extensionValue = parts[0]
+    let role = parts[1]
+    guard let roleKey = roleKeys[role.lowercased()] else {
+        print("FAIL\t\(extensionValue)\tunknown role: \(role)")
+        failCount += 1
+        continue
+    }
+
+    let extClean = extensionValue.hasPrefix(".")
+        ? String(extensionValue.dropFirst())
+        : extensionValue
+    if extClean.isEmpty {
+        print("SKIP\t\(extensionValue)")
+        continue
+    }
+
+    let contentType = "com.domduti.type.\(extClean)"
+    handlers.removeAll { handlerMatches($0, contentType: contentType, roleKey: roleKey) }
+    handlers.append([
+        "LSHandlerContentType": contentType,
+        "LSHandlerModificationDate": modificationDate,
+        "LSHandlerPreferredVersions": [roleKey: "-"],
+        roleKey: bundleId,
+    ])
+    print("OK\t\(extensionValue)")
+}
+
+defaults.set(handlers, forKey: "LSHandlers")
+defaults.synchronize()
+exit(failCount == 0 ? 0 : 1)
+SWIFT
+
+    local swift_status=$?
+    rm -f "$entries_file"
+
+    if [[ $swift_status -ne 0 ]]; then
+        echo -e "${RED}✗ Error: Failed to update Launch Services preferences${NC}"
+        exit 1
+    fi
+}
+
+# macOS 26.4+ confirmation prompts for each duti call. Optional fallback that
+# auto-clicks "Use" so the script can finish without manual interaction.
+start_dialog_auto_acceptor() {
+    osascript << 'APPLESCRIPT' &
+        tell application "System Events"
+            repeat
+                try
+                    if exists (process "CoreServicesUIAgent") then
+                        tell process "CoreServicesUIAgent"
+                            repeat with promptWindow in windows
+                                try
+                                    if exists (button "Use" of promptWindow) then
+                                        click button "Use" of promptWindow
+                                    end if
+                                end try
+                            end repeat
+                        end tell
+                    end if
+                end try
+                delay 0.05
+            end repeat
+        end tell
+APPLESCRIPT
+    echo $!
+}
+
+stop_dialog_auto_acceptor() {
+    local clicker_pid="$1"
+    if [[ -n "$clicker_pid" ]]; then
+        kill "$clicker_pid" 2>/dev/null || true
+        wait "$clicker_pid" 2>/dev/null || true
+    fi
+}
+
+apply_handlers_via_duti() {
+    local bundle_id="$1"
+    local config_file="$2"
+    local clicker_pid=""
+
+    if ! command -v duti &> /dev/null; then
+        echo -e "${RED}✗ Error: duti is not installed (required for --immediate)${NC}"
+        echo -e "${YELLOW}  Install it with: brew install duti${NC}"
+        exit 1
+    fi
+
+    clicker_pid=$(start_dialog_auto_acceptor)
+
+    while IFS= read -r line; do
+        [[ -z "$line" ]] && continue
+
+        read -r extension role <<< "$line"
+        if [[ -z "$extension" ]] || [[ -z "$role" ]]; then
+            echo -e "SKIP\t${line}"
+            continue
+        fi
+
+        if duti -s "$bundle_id" "$extension" "$role" 2>/dev/null; then
+            echo -e "OK\t${extension}"
+        else
+            echo -e "FAIL\t${extension}\tduti returned an error"
+        fi
+    done < <(parse_jsonc_config "$config_file")
+
+    stop_dialog_auto_acceptor "$clicker_pid"
+}
+
+macos_major_minor() {
+    sw_vers -productVersion | awk -F. '{print $1 "." $2}'
+}
+
+needs_logout_for_handlers() {
+    local version
+    version=$(macos_major_minor)
+    awk -v v="$version" 'BEGIN {
+        split(v, parts, ".")
+        major = parts[1] + 0
+        minor = parts[2] + 0
+        exit (major > 26 || (major == 26 && minor >= 4)) ? 0 : 1
+    }'
+}
 
 # Count total entries
 TOTAL_ENTRIES=$(parse_jsonc_config "$CONFIG_FILE" | wc -l | tr -d ' ')
 echo -e "${BLUE}Found ${TOTAL_ENTRIES} file extension mappings to configure${NC}"
+if [[ "$USE_IMMEDIATE" == true ]]; then
+    echo -e "${CYAN}ℹ Using duti with auto-accepted prompts (--immediate)${NC}"
+    echo -e "${YELLOW}  System dialogs may flash briefly; grant Automation access if prompted${NC}"
+else
+    echo -e "${CYAN}ℹ Using batch Launch Services update (no confirmation dialogs)${NC}"
+fi
 echo ""
 
 # Process the config file
@@ -410,29 +592,28 @@ SUCCESS_COUNT=0
 FAIL_COUNT=0
 SKIP_COUNT=0
 
-while IFS= read -r line; do
-    # Skip empty lines
-    [[ -z "$line" ]] && continue
+if [[ "$USE_IMMEDIATE" == true ]]; then
+    APPLY_HANDLERS=(apply_handlers_via_duti)
+else
+    APPLY_HANDLERS=(apply_handlers_via_plist)
+fi
 
-    # Parse the line: extension role
-    read -r extension role <<< "$line"
-
-    # Validate the line has both components
-    if [[ -z "$extension" ]] || [[ -z "$role" ]]; then
-        echo -e "${YELLOW}⚠ Skipping malformed entry: $line${NC}"
-        ((SKIP_COUNT++))
-        continue
-    fi
-
-    # Set the default handler using duti
-    if duti -s "$BUNDLE_ID" "$extension" "$role" 2>/dev/null; then
-        echo -e "${GREEN}✓${NC} Set ${YELLOW}${extension}${NC} → ${APP_NAME}"
-        ((SUCCESS_COUNT++))
-    else
-        echo -e "${RED}✗${NC} Failed to set ${YELLOW}${extension}${NC}"
-        ((FAIL_COUNT++))
-    fi
-done < <(parse_jsonc_config "$CONFIG_FILE")
+while IFS=$'\t' read -r status extension detail; do
+    case "$status" in
+        OK)
+            echo -e "${GREEN}✓${NC} Set ${YELLOW}${extension}${NC} → ${APP_NAME}"
+            SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+            ;;
+        FAIL)
+            echo -e "${RED}✗${NC} Failed to set ${YELLOW}${extension}${NC} (${detail})"
+            FAIL_COUNT=$((FAIL_COUNT + 1))
+            ;;
+        SKIP)
+            echo -e "${YELLOW}⚠ Skipping malformed entry: ${extension}${NC}"
+            SKIP_COUNT=$((SKIP_COUNT + 1))
+            ;;
+    esac
+done < <("${APPLY_HANDLERS[@]}" "$BUNDLE_ID" "$CONFIG_FILE")
 
 echo ""
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
@@ -447,6 +628,14 @@ if [[ $SKIP_COUNT -gt 0 ]]; then
     echo -e "  ${YELLOW}Skipped:${NC}    $SKIP_COUNT"
 fi
 echo ""
-echo -e "${YELLOW}Note:${NC} Changes take effect immediately."
-echo -e "      Existing files may need to be re-opened."
+if [[ "$USE_IMMEDIATE" == true ]]; then
+    echo -e "${YELLOW}Note:${NC} Changes should take effect immediately."
+    echo -e "      Existing files may need to be re-opened."
+elif needs_logout_for_handlers; then
+    echo -e "${YELLOW}Note:${NC} On macOS 26.4+, log out and back in once for all handlers to take effect."
+    echo -e "      Or re-run with ${CYAN}--immediate${NC} to apply live via duti (dialogs auto-accepted)."
+else
+    echo -e "${YELLOW}Note:${NC} Changes take effect immediately."
+    echo -e "      Existing files may need to be re-opened."
+fi
 echo ""
