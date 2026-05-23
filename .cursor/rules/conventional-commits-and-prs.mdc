@@ -1,0 +1,55 @@
+---
+description: Conventional commits, worktree isolation, and PR standards for semantic-release CI
+alwaysApply: true
+---
+
+# Commits, branches, and pull requests
+
+This repo ships versions via **semantic-release** on `main` using **Conventional Commits** (`conventional-changelog-conventionalcommits`). Commit wording directly affects semver and generated notes.
+
+## Commits
+
+**Format.** Every commit subject line must follow:
+
+```text
+type(scope): imperative summary in lowercase (no trailing period)
+```
+
+- **Types (use only these):** `feat`, `fix`, `refactor`, `style`, `chore`, `docs`.
+- **Scope:** **Required** — short, concrete area (e.g. `brew`, `bloods`, `deps`, `ci`). Use a consistent scope for the subsystem you touch.
+- **Body:** When the change is not obvious from the subject, add a blank line, then a body that summarizes **what** changed, **why**, and any **context** (constraints, trade-offs, follow-ups). Bullets are optional; in many cases a short bullet list is easier to scan than one paragraph, but continuous prose is equally acceptable. This is a **summary** for readers and generated notes — not a line-by-line inventory of every change (the diff is the right place for that). Stay factual.
+
+### Commit type vs release (semantic-release)
+
+On **`main`**, **semantic-release** classifies commits using `@semantic-release/commit-analyzer` and **`.releaserc.json`**. The **type** you choose determines whether a version ships and which **semver** bump applies. Pick the type that matches the **release signal you want**, not generic “importance.”
+
+| Type | Typical release impact (this repo) | Use when |
+|------|--------------------------------------|----------|
+| `feat` | **Minor** | You are introducing a **new capability** or **user-facing behavior** that belongs in minor release notes. |
+| `fix` | **Patch** | You are correcting **wrong or broken behavior** users would describe as a bug fix. |
+| `docs` | **Patch** (explicit `releaseRules` in `.releaserc.json`) | Documentation-only changes. |
+| `refactor` | **Patch** (explicit `releaseRules`) | Restructure implementation while preserving the **same product intent**: internal cleanup, safer types, extracting modules, simplifying flows, **or swapping one realization of an existing affordance for another** (e.g. permanent inline callout vs toast for the same informational cue). Not for new capabilities (`feat`) or broken behavior (`fix`). |
+| `style` | **Patch** (explicit `releaseRules`) | Formatting, whitespace, lint-only fixes — no behavior change. |
+| `chore` | **No release** (default analyzer: `chore` is not a releasable type here) | **Non-application** upkeep: CI, build scripts, dependency bumps, codegen/config, repo hygiene, editor metadata—work that should **not** cut a release on its own. **Do not** use `chore` for edits under `src/` that change runtime UI or domain logic paths users exercise in the product; those are **`feat` / `fix` / `refactor` / `style` / `docs`**. |
+
+**Choosing `feat` vs `refactor` (UI-heavy changes).** Ask: are you introducing a **new capability** users did not have before (new control, new data surface, new flow)?→ `feat`. Are you delivering the **same** capability/information differently (layout, transient vs persistent messaging, smaller component splits)?→ usually `refactor` (patch). Is something incorrect or misleading for users?→ `fix`.
+
+**Do not use `feat`** for: bumping a default constant, config-only tweaks, comment/docblock edits, pure refactors, or anything that is **not** a new feature in the product sense — those usually belong in `refactor`, `style`, or `docs` (or `chore` only when the change truly lives outside shipped app behaviour, e.g. CI only).
+
+**Do not use `fix`** when nothing was broken: a patch release still ships. Prefer `refactor` for intentional implementation changes that are not bug repairs; prefer `chore` only when the change is **outside** app behaviour and should not release (e.g. pipeline-only).
+
+When unsure, read **`.releaserc.json`** (`releaseRules` and plugins); do not guess from memory.
+
+**Granularity.** One commit should represent one coherent change. Do **not** stage and commit unrelated edits together (e.g. a feature plus drive-by formatting in another module). Split into separate commits or separate branches/PRs.
+
+**Breaking changes.** Only mark a breaking change when you intend a **major** version bump. Typical triggers for the analyzer include a `BREAKING CHANGE:` (or `BREAKING CHANGES:`) footer, or a `!` after the type (e.g. `feat(api)!:`). If the change is **not** breaking, do **not** use those markers and avoid casually writing phrases like “breaking change(s)” in the subject or body — that can drive incorrect release classification.
+
+## Branch isolation
+
+Do work on **dedicated branches** and prefer **`git worktree`** when juggling multiple efforts so each worktree has a clean branch and working tree. Do not mix unrelated changes on the same branch.
+
+## Pull requests
+
+- **Description:** Summarize **all** functional and behavioral changes in the PR. Prefer plain, precise wording; avoid puffery and **emoji**. Match the user’s standard for well-written technical prose (complete sentences, proportionate length).
+- **Attribution:** Do not add **Co-authored-by** or tool/AI attribution (see `.cursor/rules/no-ai-attribution.mdc`).
+- **Assignment:** When opening or updating a PR on behalf of the maintainer, **assign** **`tsdevau`** (e.g. GitHub UI assignees or `gh pr create` / `gh pr edit` with assignee set accordingly).
