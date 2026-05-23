@@ -498,7 +498,8 @@ SWIFT
 # macOS 26.4+ confirmation prompts for each duti call. Optional fallback that
 # auto-clicks "Use" so the script can finish without manual interaction.
 start_dialog_auto_acceptor() {
-    osascript << 'APPLESCRIPT' &
+    # nohup prevents command substitution ($( ... )) from waiting on this job.
+    nohup osascript << 'APPLESCRIPT' >/dev/null 2>&1 &
         tell application "System Events"
             repeat
                 try
@@ -533,14 +534,24 @@ apply_handlers_via_duti() {
     local bundle_id="$1"
     local config_file="$2"
     local clicker_pid=""
+    local current=0
+    local total
+    total=$(parse_jsonc_config "$config_file" | wc -l | tr -d ' ')
 
     if ! command -v duti &> /dev/null; then
-        echo -e "${RED}✗ Error: duti is not installed (required for --immediate)${NC}"
-        echo -e "${YELLOW}  Install it with: brew install duti${NC}"
+        echo -e "${RED}✗ Error: duti is not installed (required for --immediate)${NC}" >&2
+        echo -e "${YELLOW}  Install it with: brew install duti${NC}" >&2
         exit 1
     fi
 
+    cleanup_duti_clicker() {
+        stop_dialog_auto_acceptor "$clicker_pid"
+    }
+    trap cleanup_duti_clicker EXIT INT TERM
+
+    echo -e "${CYAN}ℹ Starting dialog auto-acceptor...${NC}" >&2
     clicker_pid=$(start_dialog_auto_acceptor)
+    echo -e "${CYAN}ℹ Applying ${total} handlers via duti...${NC}" >&2
 
     while IFS= read -r line; do
         [[ -z "$line" ]] && continue
@@ -551,6 +562,9 @@ apply_handlers_via_duti() {
             continue
         fi
 
+        current=$((current + 1))
+        echo -e "${CYAN}  [${current}/${total}]${NC} Setting ${YELLOW}${extension}${NC}..." >&2
+
         if duti -s "$bundle_id" "$extension" "$role" 2>/dev/null; then
             echo -e "OK\t${extension}"
         else
@@ -558,6 +572,7 @@ apply_handlers_via_duti() {
         fi
     done < <(parse_jsonc_config "$config_file")
 
+    trap - EXIT INT TERM
     stop_dialog_auto_acceptor "$clicker_pid"
 }
 
