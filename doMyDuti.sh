@@ -536,12 +536,17 @@ apply_handlers_via_duti() {
     local clicker_pid=""
     local current=0
     local total
+    local use_tty_progress=false
     total=$(parse_jsonc_config "$config_file" | wc -l | tr -d ' ')
 
     if ! command -v duti &> /dev/null; then
         echo -e "${RED}✗ Error: duti is not installed (required for --immediate)${NC}" >&2
         echo -e "${YELLOW}  Install it with: brew install duti${NC}" >&2
         exit 1
+    fi
+
+    if [[ -t 2 ]]; then
+        use_tty_progress=true
     fi
 
     cleanup_duti_clicker() {
@@ -563,14 +568,29 @@ apply_handlers_via_duti() {
         fi
 
         current=$((current + 1))
-        echo -e "${CYAN}  [${current}/${total}]${NC} Setting ${YELLOW}${extension}${NC}..." >&2
+        if [[ "$use_tty_progress" == true ]]; then
+            printf '\r\033[K%s  [%s/%s]%s Setting %s%s%s...' \
+                "$CYAN" "$current" "$total" "$NC" "$YELLOW" "$extension" "$NC" >&2
+        else
+            echo -e "${CYAN}  [${current}/${total}]${NC} Setting ${YELLOW}${extension}${NC}..." >&2
+        fi
 
         if duti -s "$bundle_id" "$extension" "$role" 2>/dev/null; then
+            if [[ "$use_tty_progress" == true ]]; then
+                printf '\r\033[K' >&2
+            fi
             echo -e "OK\t${extension}"
         else
+            if [[ "$use_tty_progress" == true ]]; then
+                printf '\r\033[K' >&2
+            fi
             echo -e "FAIL\t${extension}\tduti returned an error"
         fi
     done < <(parse_jsonc_config "$config_file")
+
+    if [[ "$use_tty_progress" == true ]]; then
+        printf '\n' >&2
+    fi
 
     trap - EXIT INT TERM
     stop_dialog_auto_acceptor "$clicker_pid"
@@ -616,7 +636,9 @@ fi
 while IFS=$'\t' read -r status extension detail; do
     case "$status" in
         OK)
-            echo -e "${GREEN}✓${NC} Set ${YELLOW}${extension}${NC} → ${APP_NAME}"
+            if [[ "$USE_IMMEDIATE" != true ]]; then
+                echo -e "${GREEN}✓${NC} Set ${YELLOW}${extension}${NC} → ${APP_NAME}"
+            fi
             SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
             ;;
         FAIL)
