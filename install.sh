@@ -87,7 +87,7 @@ else
     CONFIG_DIR=""
 fi
 
-echo -e "${GREEN}✓ Config will be installed to: ${CONFIG_FILE}${NC}"
+echo -e "${GREEN}✓ Config location: ${CONFIG_FILE}${NC}"
 echo ""
 
 # Download and install the script
@@ -101,20 +101,24 @@ fi
 chmod +x "${INSTALL_DIR}/${SCRIPT_NAME}"
 echo -e "${GREEN}✓ Downloaded and made executable: ${INSTALL_DIR}/${SCRIPT_NAME}${NC}"
 
-# Download and install the config file
+# Download and install the config file (skip if user already has one)
 echo ""
-echo -e "${BLUE}Downloading and installing config...${NC}"
+if [[ -f "$CONFIG_FILE" ]]; then
+    echo -e "${YELLOW}⚠ Existing config found — leaving it unchanged: ${CONFIG_FILE}${NC}"
+else
+    echo -e "${BLUE}Downloading and installing config...${NC}"
 
-if [[ -n "$CONFIG_DIR" ]]; then
-    mkdir -p "$CONFIG_DIR"
+    if [[ -n "$CONFIG_DIR" ]]; then
+        mkdir -p "$CONFIG_DIR"
+    fi
+
+    if ! curl -fsSL "${REPO_URL}/${CONFIG_NAME}" -o "${CONFIG_FILE}"; then
+        echo -e "${RED}✗ Failed to download ${CONFIG_NAME}${NC}"
+        exit 1
+    fi
+
+    echo -e "${GREEN}✓ Downloaded config: ${CONFIG_FILE}${NC}"
 fi
-
-if ! curl -fsSL "${REPO_URL}/${CONFIG_NAME}" -o "${CONFIG_FILE}"; then
-    echo -e "${RED}✗ Failed to download ${CONFIG_NAME}${NC}"
-    exit 1
-fi
-
-echo -e "${GREEN}✓ Downloaded config: ${CONFIG_FILE}${NC}"
 
 # Check if installation directory is in PATH
 echo ""
