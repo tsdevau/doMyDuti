@@ -2,11 +2,16 @@
   "bundleId": "com.todesktop.230313mzl4w4u92",
   "extensions": [
     // ============================================
+    // Core File Associations
+    // ============================================
+    [".txt", "all"],
+
+    // ============================================
     // Web Development - Core
     // ============================================
-    [".html", "all"],
-    [".htm", "all"],
-    [".xhtml", "all"],
+    // [".html", "all"],
+    // [".htm", "all"],
+    // [".xhtml", "all"],
     [".css", "all"],
     [".scss", "all"],
     [".sass", "all"],
@@ -300,7 +305,7 @@
     // Docker
     [".dockerfile", "all"],
     [".Dockerfile", "all"],
-    ["public.Dockerfile", "all"],
+    // ["public.Dockerfile", "all"],
 
     // Terraform
     [".tf", "all"],
@@ -310,7 +315,7 @@
     // Make & Build
     [".makefile", "all"],
     [".Makefile", "all"],
-    ["public.Makefile", "all"],
+    // ["public.Makefile", "all"],
     [".mk", "all"],
     [".cmake", "all"],
     [".cmake.in", "all"],
@@ -330,7 +335,7 @@
     [".pnpm-lock.yaml", "all"],
     [".bun.lockb", "all"],
     [".Gemfile", "all"],
-    ["public.Gemfile", "all"],
+    // ["public.Gemfile", "all"],
     [".Gemfile.lock", "all"],
     [".go.mod", "all"],
     [".go.sum", "all"],
@@ -349,9 +354,9 @@
     [".setup.cfg", "all"],
     [".MANIFEST.in", "all"],
     [".Rakefile", "all"],
-    ["public.Rakefile", "all"],
+    // ["public.Rakefile", "all"],
     [".Procfile", "all"],
-    ["public.Procfile", "all"],
+    // ["public.Procfile", "all"],
 
     // CI/CD
     [".gitlab-ci.yml", "all"],
